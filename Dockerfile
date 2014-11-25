@@ -1,16 +1,18 @@
 FROM        cpilsworth/jetty
 MAINTAINER  Chris Pilsworth <cpilsworth@diffatech.co.uk>
 
-RUN mkdir -p /opt/jetty/solr-base/lib/ext \
-    && mkdir -p /opt/jetty/solr-base/webapps \
-    && curl -SL 'http://central.maven.org/maven2/org/apache/solr/solr/4.6.1/solr-4.6.1.war' -o /opt/jetty/solr-base/webapps/solr.war \
-    && curl -SL 'http://central.maven.org/maven2/ch/qos/logback/logback-core/1.1.2/logback-core-1.1.2.jar' -o /opt/jetty/solr-base/lib/ext/logback-core-1.1.2.jar \
-    && curl -SL 'http://central.maven.org/maven2/ch/qos/logback/logback-classic/1.1.2/logback-classic-1.1.2.jar' -o /opt/jetty/solr-base/lib/ext/logback-classic-1.1.2.jar \
-    && curl -SL 'http://central.maven.org/maven2/org/slf4j/slf4j-api/1.6.6/slf4j-api-1.6.6.jar' -o /opt/jetty/solr-base/lib/ext/slf4j-api-1.6.6.jar
+RUN curl -SL http://mirrors.ukfast.co.uk/sites/ftp.apache.org/lucene/solr/4.10.2/solr-4.10.2.tgz | tar -xzC /opt/  \
+ && ln -s /opt/solr-4.10.2 /opt/solr \
+ && cd /opt/solr/example \
+ && rm -rf example-DIH/ example-schemaless/ multicore/ exampledocs/ etc/ ../docs \
+ && rm /opt/solr/example/webapps/solr.war
 
-WORKDIR /opt/jetty/solr-base
+COPY solr-jetty-context.xml /opt/solr/example/webapps/
+COPY start.ini /opt/solr/example/
 
-EXPOSE 8080
+WORKDIR /opt/solr/example
+
+EXPOSE 8983
 
 # Jetty docker kicks off jetty in entrypoint.  Extend with relevant solr parameters
-CMD ["java", "-jar", "../start.jar", "--module=jsp,ext,webapp,deploy"]
+CMD ["java", "-jar", "/opt/jetty/start.jar"]
